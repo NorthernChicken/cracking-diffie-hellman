@@ -7,7 +7,7 @@ import (
 
 func main() {
 
-	// Alice and Bob choose SA and SB respectively (secret, never transmitted)
+	// Random number tester in Go
 	var SA int = rand.IntN(10000)
 	var SB int = rand.IntN(10000)
 

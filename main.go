@@ -1,3 +1,5 @@
+// Don't use this it doesn't work. Use the python main.py. 
+
 package main
 
 import (
