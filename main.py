@@ -1,3 +1,4 @@
+# main.py
 import alice, bob, eve
 
 # Alice: 'Hey Bob, let's do Diffie Hellman! Here is a large prime and a primitive root mod that prime!'
@@ -43,5 +44,8 @@ print(f"Do Alice and Bob's keys match? {KeysMatch}")
 # They shouldn't because Alice and Bob didn't actually make a key with each other,
 # they both made a key with Eve.
 
-Alice_and_Eve_Match = KeyA == KeyE_with_Alice
-print(f"Does Eve have Alice's key? {Alice_and_Eve_Match}")
+Alice_and_Eve_match = KeyA == KeyE_with_Alice
+print(f"Does Eve have Alice's key? {Alice_and_Eve_match}")
+
+Bob_and_Eve_match = KeyB == KeyE_with_Bob
+print(f"Does Eve have Bob's key? {Bob_and_Eve_match}")
