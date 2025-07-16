@@ -1,0 +1,53 @@
+import random
+import sympy
+import math
+
+# If you are writing this in python you can use these exact libraries.
+# If you want to write in Go you will have to find other libraries that
+# get a random number of a certain bit length and also check primality
+
+function generate_large_prime:
+
+    while true:
+
+        candidate = random.getrandbits(1024) #use this exact function in python to get a large number 1024 bits
+        if candidate % 2 is 0 (meaning its even, reject it),
+            continue
+        if sympy.isprime(candidate) # use this library for python
+            return candidate
+
+
+function find_primitive_root_alpha:
+    # Step 1: Find prime factors of p-1
+    factors = empty list
+    n = p - 1
+    for i from 2 to square root of n:
+        while n mod i == 0:
+            if i not in factors:
+                append i to factors
+            n = n / i
+    if n > 1:
+        append n to factors
+
+    # Step 2: Test candidates from 2 upwards
+    for candidate from 2 to p-1:
+        is_primitive = true
+
+        for factor in factors:
+
+            power = pow(candidate, (p-1)/factor, p)
+            # in python the pow function in math library takes base, exponent, then mod as arguments
+
+            if power == 1:
+                is_primitive = false
+                break
+
+        if is_primitive:
+            return candidate
+    return -1
+
+
+
+
+p = generate_large_prime
+alpha = find_primitive_root_alpha

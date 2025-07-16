@@ -1,31 +1,39 @@
 import random
-'''
-Converting to Python because Go sucks
-'''
 
-# Alice announces these, Eve intercepts them before passing them to Bob.
+# Alice shares these numbers, but Eve can see them first
 p = 1000000007
 alpha = 5
 
-# Alice and Bob choose SA and SB respectively (secret, never transmitted)
+# Alice and Bob each pick a secret number (never shared)
 SA = random.randint(0, 10000)
-print("Alice's secret is: " + str(SA))
+print(f"Alice's secret number: {SA}")
 SB = random.randint(0, 10000)
-print("Bob's secret is: " + str(SB))
+print(f"Bob's secret number: {SB}")
 
-# Alice and Bob caluclate TA and TB respecitvely based on alpha, p, and their secret number.
+# Alice and Bob make new numbers (TA and TB) using their secret numbers
 TA = pow(alpha, SA, p)
-print("TA calculated by Alice is: " + str(TA))
+print(f"Alice's number (TA): {TA}")
 TB = pow(alpha, SB, p)
-print("TB calculated by Bob is: " + str(TB))
-# These values TA and TB are sent to each other (and pass through Eve first, who can manipulate them)
+print(f"Bob's number (TB): {TB}")
+# These numbers (TA and TB) are shared, and Eve can see them
 
-# Alice calculates the shared key.
+# Alice makes the final key
 KeyA = pow(TB, SA, p)
-print("Alice calculates the shared key to be: " + str(KeyA))
-# Bob does the same on his end. These steps aren't visible to Eve.
+print(f"Alice's final key: {KeyA}")
+# Bob makes the final key too, Eve can't see this
 KeyB = pow(TA, SB, p)
-print("Bob calculates the shared key to be: " + str(KeyB))
+print(f"Bob's final key: {KeyB}")
 
+# Check if the keys are the same
 KeysMatch = KeyA == KeyB
-print("Do the keys match? " + str(KeysMatch))
+print(f"Are the keys the same? {KeysMatch}")
+
+'''
+Removed extra quotes.
+Fixed spelling of "calculate" to "make" in comments.
+Used easier f-strings to show text and numbers.
+Made sure spacing was even.
+Removed extra blank spaces at the end of lines.
+Made comments shorter and easier to understand.
+I did some formatting and clarity in the script.
+'''
