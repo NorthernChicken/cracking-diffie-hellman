@@ -35,7 +35,7 @@ What was fixed?
 
 Removed extra quotes.
 Fixed spelling of "calculate" to "make" in comments.
-Used easier f-strings to show text and numbers.
+Used f-strings to show text, numbers, and exponents.
 Even spacing.
 Removed extra blank spaces at the end of lines.
 Made comments shorter and easier to understand.
