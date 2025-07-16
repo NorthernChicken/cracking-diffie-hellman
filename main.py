@@ -1,44 +1,47 @@
-import random
+import alice, bob, eve
 
-# Alice shares these numbers, but Eve can see them.
-p = 1000000007
-alpha = 5
+# Alice: 'Hey Bob, let's do Diffie Hellman! Here is a large prime and a primitive root mod that prime!'
+p = alice.generate_p()
+alpha = alice.generate_alpha()
 
-# Alice and Bob each pick a secret number (never shared)
-# F-strings allows you to format strings quicker instead of the format() method.
-SA = random.randint(0, 10000)
-print(f"Alice's secret number: {SA}")
-SB = random.randint(0, 10000)
-print(f"Bob's secret number: {SB}")
+# Alice: 'I'm going to generate a secret number... you do too.'
+SA = alice.generate_SA()
 
-# Alice and Bob make new numbers (TA and TB) using their secret numbers. 
-# "Pow" function is used to calculate the power of a number. pow(base, exponent)
-TA = pow(alpha, SA, p)
-print(f"Alice's number (TA): {TA}")
-TB = pow(alpha, SB, p)
-print(f"Bob's number (TB): {TB}")
-# These numbers (TA and TB) are shared, and Eve can see them
+# Eve, pretending to be Bob: 'OK, I generated a secret number.'
+SE_with_Alice = eve.generate_SE()
 
-# Alice creates the final key
-KeyA = pow(TB, SA, p)
-print(f"Alice's final key: {KeyA}")
-# Bob creates the final key, Eve can't see this
-KeyB = pow(TA, SB, p)
-print(f"Bob's final key: {KeyB}")
+# Eve, pretending to be Alice: 'Hey Bob, let's do Diffie Hellman! Here is a large prime and a primitive root mod that prime!'
+p_eve = eve.generate_p()
+alpha_eve = eve.generate_alpha()
 
-# Check if the keys are the same
+# Eve, pretending to be Alice: 'Let's generate secret numbers, Bob'
+SE_with_Bob = eve.generate_SE()
+
+# Bob, thinking he's talking to Alice: 'OK'
+SB = bob.generate_SB()
+
+# Eve says to both Alice and Bob: 'Generate your T value and give me it so we can create a shared key.'
+# Eve also generates two seperate keys for each of them.
+TE_with_Alice = eve.generate_TE(alpha, SE_with_Alice, p)
+TE_with_Bob = eve.generate_TE(alpha, SE_with_Bob, p)
+
+TA = alice.generate_TA(alpha, SA, p)
+TB = bob.generate_TB(alpha, SB, p)
+
+# Eve pretending to be Alice: 'Alright Bob, here is my TE. Give me your TB and we can make a shared key.'
+KeyE_with_Bob = eve.find_key(TB, SE_with_Bob, p)
+
+# Eve pretending to be Bob: 'Alright Alice, here is my TE. Give me your TA and we can make a shared key.'
+KeyE_with_Alice = eve.find_key(TA, SE_with_Alice, p)
+
+# Alice and Bob each find the key on their ends:
+KeyA = alice.find_key(TE_with_Alice, SA, p)
+KeyB = bob.find_key(TE_with_Bob, SB, p)
+
 KeysMatch = KeyA == KeyB
-print(f"Are the keys the same? {KeysMatch}")
+print(f"Do Alice and Bob's keys match? {KeysMatch}")
+# They shouldn't because Alice and Bob didn't actually make a key with each other,
+# they both made a key with Eve.
 
-'''
-What was fixed?
-
-Removed extra quotes.
-Fixed spelling of "calculate" to "make" in comments.
-Used f-strings to show text, numbers, and exponents.
-Even spacing.
-Removed extra blank spaces at the end of lines.
-Made comments shorter and easier to understand.
-Fixed formatting and clarity issues in the script.
-
-'''
+Alice_and_Eve_Match = KeyA == KeyE_with_Alice
+print(f"Does Eve have Alice's key? {Alice_and_Eve_Match}")
