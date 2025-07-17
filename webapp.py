@@ -1,44 +1,19 @@
 import os
 from flask import Flask, render_template_string, jsonify, session
 
-# Create the Flask application
 app = Flask(__name__)
-# A secret key is required for session management in Flask.
-# In a production app, this should be a long, random, and secret value.
 app.secret_key = os.urandom(24)
 
-# --- Cryptographic Helper Functions ---
-# These functions represent the core mathematical operations of the Diffie-Hellman exchange.
-
 def generate_secret(p):
-    """
-    Generates a 'secret' integer. In a real-world scenario, this would be a large,
-    cryptographically secure random number. For this demo, we use smaller numbers
-    for clarity.
-    """
-    # In a real application, use secrets.randbelow(p - 1) + 1
-    # For this demo, we'll use a simple counter stored in the session to get different secrets.
     secret_counter = session.get('secret_counter', 4)
     session['secret_counter'] = secret_counter + 3
     return secret_counter
 
 def generate_public_key(alpha, secret, p):
-    """
-    Calculates the public key (T) using the formula: T = alpha^secret mod p.
-    This is the value that is exchanged publicly.
-    """
     return pow(alpha, secret, p)
 
 def calculate_shared_key(their_public_key, my_secret, p):
-    """
-    Calculates the final shared secret key using the formula: K = their_T^my_secret mod p.
-    If the exchange is successful, both parties will arrive at the same key.
-    """
     return pow(their_public_key, my_secret, p)
-
-# --- HTML & CSS & JavaScript Template ---
-# This is a single string that contains the entire frontend for the web application.
-# It uses Tailwind CSS for styling and JavaScript for interactivity.
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -47,15 +22,12 @@ HTML_TEMPLATE = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diffie-Hellman MitM Attack Simulator</title>
-    <!-- Load Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Use the Inter font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        /* Simple animation for cards appearing */
         .card-enter {
             opacity: 0;
             transform: translateY(20px);
@@ -74,7 +46,7 @@ HTML_TEMPLATE = """
             border-radius: 0.375rem; /* rounded-md */
             font-family: monospace;
             word-break: break-all;
-            min-height: 42px; /* Ensure consistent height */
+            min-height: 42px;
             display: flex;
             align-items: center;
         }
@@ -389,33 +361,22 @@ HTML_TEMPLATE = """
 </html>
 """
 
-# --- Flask Routes ---
-
 @app.route('/')
 def index():
-    """Renders the main HTML page."""
     return render_template_string(HTML_TEMPLATE)
 
 @app.route('/state')
 def get_state():
-    """Returns the current state of the simulation from the session."""
     return jsonify(session.get('state', {'step': 0, 'status': 'Click "Initialize" to begin.'}))
 
 @app.route('/reset', methods=['POST'])
 def reset():
-    """Clears the session to reset the simulation."""
     session.clear()
     return jsonify({'status': 'ok'})
 
 @app.route('/init', methods=['POST'])
 def init_params():
-    """
-    Step 1: Initialize public parameters p and alpha.
-    These are publicly known values.
-    """
-    session.clear() # Start fresh
-    # Using smaller, well-known values for demonstration purposes.
-    # In a real application, these would be very large, securely generated primes.
+    session.clear()
     p = 23
     alpha = 5
     state = {
@@ -429,22 +390,16 @@ def init_params():
 
 @app.route('/generate_secrets', methods=['POST'])
 def generate_secrets():
-    """
-    Step 2: Alice, Bob, and Eve all generate their secret numbers.
-    """
     state = session.get('state', {})
     if state.get('step') != 1:
         return jsonify({'error': 'Invalid step'}), 400
 
     p = state['p']
     
-    # Alice generates her secret
     state['SA'] = generate_secret(p)
     
-    # Bob generates his secret
     state['SB'] = generate_secret(p)
     
-    # Eve generates two secrets, one to use with Alice, one for Bob
     state['SE_A'] = generate_secret(p)
     state['SE_B'] = generate_secret(p)
     
@@ -455,9 +410,6 @@ def generate_secrets():
 
 @app.route('/exchange_public_keys', methods=['POST'])
 def exchange_keys():
-    """
-    Step 3: Public keys are "sent". Eve intercepts them and substitutes her own.
-    """
     state = session.get('state', {})
     if state.get('step') != 2:
         return jsonify({'error': 'Invalid step'}), 400
@@ -465,18 +417,13 @@ def exchange_keys():
     p = state['p']
     alpha = state['alpha']
 
-    # 1. Alice and Bob calculate their public keys to send.
     state['TA'] = generate_public_key(alpha, state['SA'], p)
     state['TB'] = generate_public_key(alpha, state['SB'], p)
     
-    # 2. Eve calculates her public keys to send to Alice and Bob.
     state['TE_A'] = generate_public_key(alpha, state['SE_A'], p)
     state['TE_B'] = generate_public_key(alpha, state['SE_B'], p)
     
-    # 3. Eve intercepts the exchange.
-    # Alice receives Eve's key instead of Bob's.
     state['TA_received'] = state['TE_A']
-    # Bob receives Eve's key instead of Alice's.
     state['TB_received'] = state['TE_B']
     
     state['step'] = 3
@@ -486,25 +433,17 @@ def exchange_keys():
 
 @app.route('/compute_shared', methods=['POST'])
 def compute_shared():
-    """
-    Step 4: All parties compute their "shared" key based on the public key they received.
-    """
     state = session.get('state', {})
     if state.get('step') != 3:
         return jsonify({'error': 'Invalid step'}), 400
         
     p = state['p']
     
-    # Alice computes her key using the key she received (from Eve)
     state['KeyA'] = calculate_shared_key(state['TA_received'], state['SA'], p)
     
-    # Bob computes his key using the key he received (from Eve)
     state['KeyB'] = calculate_shared_key(state['TB_received'], state['SB'], p)
     
-    # Eve computes two keys: one for her conversation with Alice, one for Bob
-    # Key with Alice: uses Alice's public key (TA) and her secret for Alice (SE_A)
     state['KeyE_A'] = calculate_shared_key(state['TA'], state['SE_A'], p)
-    # Key with Bob: uses Bob's public key (TB) and her secret for Bob (SE_B)
     state['KeyE_B'] = calculate_shared_key(state['TB'], state['SE_B'], p)
     
     state['step'] = 4
@@ -514,9 +453,6 @@ def compute_shared():
 
 @app.route('/verify')
 def verify():
-    """
-    Final Step: Compare the keys to see if the attack was successful.
-    """
     state = session.get('state', {})
     if state.get('step') != 4:
         return jsonify({'error': 'Keys not computed yet'}), 400
@@ -529,10 +465,6 @@ def verify():
     return jsonify(results)
 
 if __name__ == '__main__':
-    # To run this application:
-    # 1. Save the code as a Python file (e.g., app.py).
-    # 2. Make sure you have Flask installed (`pip install Flask`).
-    # 3. Run the script from your terminal (`python app.py`).
-    # 4. Open your web browser and go to http://127.0.0.1:5000
+    # http://127.0.0.1:5000
     app.run(debug=True)
 

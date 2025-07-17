@@ -15,7 +15,7 @@ SE_with_Alice = eve.generate_SE()
 p_eve = eve.generate_p()
 alpha_eve = eve.generate_alpha()
 
-# Eve, pretending to be Alice: 'Let's generate secret numbers, Bob'
+# Eve, pretending to be Alice:   'Let's generate secret numbers, Bob'
 SE_with_Bob = eve.generate_SE()
 
 # Bob, thinking he's talking to Alice: 'OK'
